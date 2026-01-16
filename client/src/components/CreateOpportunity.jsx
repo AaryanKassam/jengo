@@ -62,11 +62,6 @@ const CreateOpportunity = ({ onOpportunityCreated }) => {
       status: 'open'
     };
     
-    // Store in localStorage for demo
-    const existing = JSON.parse(localStorage.getItem('myOpportunities') || '[]');
-    existing.push(newOpportunity);
-    localStorage.setItem('myOpportunities', JSON.stringify(existing));
-    
     alert('Opportunity created successfully!');
     onOpportunityCreated(newOpportunity);
     

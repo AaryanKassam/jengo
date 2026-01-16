@@ -59,11 +59,26 @@ const ApplicationCard = ({ application, onAccept, onReject }) => {
       <div className="application-skills">
         <span className="skills-label">Skills:</span>
         <div className="skills-list">
-          {application.volunteerSkills.map((skill, index) => (
+          {(application.volunteerSkills || []).map((skill, index) => (
             <span key={index} className="skill-badge">{skill}</span>
           ))}
         </div>
       </div>
+
+      {(application.volunteerResume || application.volunteerForm) && (
+        <div className="application-docs">
+          {application.volunteerResume && (
+            <a href={application.volunteerResume} target="_blank" rel="noreferrer">
+              View Resume
+            </a>
+          )}
+          {application.volunteerForm && (
+            <a href={application.volunteerForm} target="_blank" rel="noreferrer">
+              Volunteer Form
+            </a>
+          )}
+        </div>
+      )}
 
       {application.status === 'applied' && (
         <div className="application-actions">

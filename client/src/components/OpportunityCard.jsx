@@ -1,8 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './OpportunityCard.css';
 
-const OpportunityCard = ({ opportunity, onApply }) => {
+const OpportunityCard = ({ opportunity, onApply, onClose, showApply = true, showStatus = true }) => {
   const [isSaved, setIsSaved] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem('savedOpportunities') || '[]');
+    setIsSaved(saved.includes(opportunity.id));
+  }, [opportunity.id]);
 
   const handleSave = (e) => {
     e.stopPropagation();
@@ -25,18 +32,33 @@ const OpportunityCard = ({ opportunity, onApply }) => {
     }
   };
 
+  const handleClose = (e) => {
+    e.stopPropagation();
+    if (onClose) {
+      onClose(opportunity.id);
+    }
+  };
+
   const getTimeAgo = (timeString) => {
     return timeString.toLowerCase();
   };
 
+  const skills = opportunity.skillsRequired || opportunity.skills || [];
+  const isClosed = opportunity.status === 'closed';
+
   return (
-    <div className="opportunity-card">
+    <div className="opportunity-card" onClick={() => navigate(`/opportunities/${opportunity.id}`)}>
       <div className="card-header">
         <div className="company-logo">
           {opportunity.logo || '🏢'}
         </div>
         <div className="card-meta">
           <span className="time-posted">{getTimeAgo(opportunity.postedTime)}</span>
+          {showStatus && (
+            <span className={`status-pill ${isClosed ? 'closed' : 'open'}`}>
+              {isClosed ? 'Closed' : 'Open'}
+            </span>
+          )}
         </div>
       </div>
 
@@ -51,7 +73,7 @@ const OpportunityCard = ({ opportunity, onApply }) => {
         </p>
 
         <div className="card-skills">
-          {opportunity.skills.map((skill, index) => (
+          {skills.map((skill, index) => (
             <span key={index} className="skill-tag">
               {skill}
             </span>
@@ -71,9 +93,16 @@ const OpportunityCard = ({ opportunity, onApply }) => {
             >
               {isSaved ? '✓ Saved' : '🔖 Save'}
             </button>
-            <button className="btn-apply" onClick={handleApply}>
-              Apply
-            </button>
+            {showApply && (
+              <button className="btn-apply" onClick={handleApply} disabled={isClosed}>
+                {isClosed ? 'Closed' : 'Apply'}
+              </button>
+            )}
+            {!showApply && onClose && (
+              <button className="btn-apply" onClick={handleClose} disabled={isClosed}>
+                {isClosed ? 'Closed' : 'Close'}
+              </button>
+            )}
           </div>
         </div>
       </div>

@@ -8,7 +8,7 @@ const Sidebar = ({ activeTab, setActiveTab, role = 'volunteer' }) => {
 
   const volunteerMenuItems = [
     { id: 'opportunities', label: 'Opportunities', icon: '⊞' },
-    { id: 'saved', label: 'Opportunities', icon: '🔖' },
+    { id: 'saved', label: 'Saved Opportunities', icon: '🔖' },
     { id: 'applications', label: 'My Applications', icon: '📋' },
     { id: 'contacts', label: 'My Contacts', icon: '👤' },
     { id: 'resources', label: 'Resources', icon: '💼' },

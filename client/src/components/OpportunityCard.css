@@ -37,12 +37,32 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  gap: 6px;
 }
 
 .time-posted {
   font-size: 0.85rem;
   color: #999;
   font-weight: 500;
+}
+
+.status-pill {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.status-pill.open {
+  background: rgba(46, 204, 113, 0.12);
+  color: #27ae60;
+}
+
+.status-pill.closed {
+  background: rgba(231, 76, 60, 0.12);
+  color: #c0392b;
 }
 
 .card-body {
@@ -183,6 +203,13 @@
 .btn-apply:hover {
   background-color: #5a6fd8;
   transform: translateY(-1px);
+}
+
+.btn-apply:disabled {
+  background-color: #cbd5f4;
+  color: #ffffff;
+  cursor: not-allowed;
+  transform: none;
 }
 
 @media (max-width: 768px) {

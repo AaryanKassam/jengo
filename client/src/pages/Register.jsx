@@ -12,6 +12,8 @@ const Register = () => {
     username: '',
     email: '',
     password: '',
+    location: '',
+    profilePhoto: '',
     role: roleFromUrl === 'nonprofit' ? 'nonprofit' : 'volunteer'
   });
   const navigate = useNavigate();
@@ -80,6 +82,30 @@ const Register = () => {
               value={formData.email}
               onChange={handleChange}
               required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="location">Location</label>
+            <input
+              type="text"
+              id="location"
+              name="location"
+              placeholder="City, State"
+              value={formData.location}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="profilePhoto">Profile Photo URL</label>
+            <input
+              type="url"
+              id="profilePhoto"
+              name="profilePhoto"
+              placeholder="https://..."
+              value={formData.profilePhoto}
+              onChange={handleChange}
             />
           </div>
 

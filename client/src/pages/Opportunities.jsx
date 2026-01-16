@@ -9,7 +9,11 @@ const Opportunities = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    setOpportunities(mockOpportunities);
+    const storedOpportunities = JSON.parse(localStorage.getItem('opportunities') || 'null');
+    const initial = Array.isArray(storedOpportunities) && storedOpportunities.length > 0
+      ? storedOpportunities
+      : mockOpportunities;
+    setOpportunities(initial);
   }, []);
 
   return (
@@ -30,7 +34,7 @@ const Opportunities = () => {
           ) : (
             <div className="opportunities-grid">
               {opportunities.map((opp) => (
-                <OpportunityCard key={opp.id} opportunity={opp} />
+                <OpportunityCard key={opp.id} opportunity={opp} showApply={false} showStatus />
               ))}
             </div>
           )}

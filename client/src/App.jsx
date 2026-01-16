@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Opportunities from './pages/Opportunities';
+import OpportunityDetails from './pages/OpportunityDetails';
 import Dashboard from './pages/Dashboard';
 import './App.css';
 
@@ -42,6 +43,13 @@ function App() {
               <>
                 <Navbar />
                 <Opportunities />
+                <Footer />
+              </>
+            } />
+            <Route path="/opportunities/:id" element={
+              <>
+                <Navbar />
+                <OpportunityDetails />
                 <Footer />
               </>
             } />

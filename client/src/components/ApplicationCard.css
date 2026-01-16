@@ -126,6 +126,22 @@
   font-weight: 500;
 }
 
+.application-docs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.application-docs a {
+  color: #667eea;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.application-docs a:hover {
+  text-decoration: underline;
+}
+
 .application-actions {
   display: flex;
   gap: 12px;
