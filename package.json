@@ -11,10 +11,21 @@
     "start": "cd server && npm start",
     "build": "cd client && npm run build"
   },
-  "keywords": ["mern", "volunteer", "marketplace"],
+  "keywords": [
+    "mern",
+    "volunteer",
+    "marketplace"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "jsonwebtoken": "^9.0.3",
+    "mongoos": "^0.0.1-security",
+    "mongoose": "^9.1.4"
   }
 }

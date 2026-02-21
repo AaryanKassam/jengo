@@ -13,17 +13,14 @@ const Footer = () => {
           <div className="footer-section">
             <h4>For Volunteers</h4>
             <ul>
-              <li><a href="#opportunities">Browse Opportunities</a></li>
-              <li><a href="#how-it-works">How It Works</a></li>
-              <li><a href="#resources">Resources</a></li>
+              <li><a href="/opportunities">Browse Opportunities</a></li>
+              <li><a href="/#how-it-works">How It Works</a></li>
             </ul>
           </div>
           <div className="footer-section">
             <h4>For Nonprofits</h4>
             <ul>
-              <li><a href="#post-opportunity">Post Opportunity</a></li>
-              <li><a href="#pricing">Pricing</a></li>
-              <li><a href="#support">Support</a></li>
+              <li><a href="/login">Post Opportunity</a></li>
             </ul>
           </div>
           <div className="footer-section">
@@ -31,12 +28,11 @@ const Footer = () => {
             <ul>
               <li><a href="#about">About Us</a></li>
               <li><a href="#contact">Contact</a></li>
-              <li><a href="#privacy">Privacy Policy</a></li>
             </ul>
           </div>
         </div>
         <div className="footer-bottom">
-          <p>&copy; 2024 Jengo. All rights reserved.</p>
+          <p>&copy; 2026 Jengo. All rights reserved.</p>
         </div>
       </div>
     </footer>
