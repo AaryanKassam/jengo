@@ -1,14 +1,14 @@
 .application-card {
-  background: white;
+  background: var(--surface);
   border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-sm);
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .application-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-md);
 }
 
 .application-header {
@@ -28,7 +28,7 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-primary);
   color: white;
   display: flex;
   align-items: center;
@@ -41,13 +41,13 @@
 .applicant-name {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #213547;
+  color: var(--text);
   margin: 0 0 4px 0;
 }
 
 .applicant-email {
   font-size: 0.9rem;
-  color: #666;
+  color: var(--text-muted);
   margin: 0;
 }
 
@@ -59,18 +59,18 @@
 }
 
 .status-applied {
-  background-color: #e3f2fd;
-  color: #1976d2;
+  background-color: var(--info-bg);
+  color: var(--info);
 }
 
 .status-accepted {
-  background-color: #e8f5e9;
-  color: #388e3c;
+  background-color: var(--success-bg);
+  color: var(--success);
 }
 
 .status-rejected {
-  background-color: #ffebee;
-  color: #d32f2f;
+  background-color: var(--danger-bg);
+  color: var(--danger);
 }
 
 .application-details {
@@ -79,7 +79,7 @@
   gap: 12px;
   margin-bottom: 16px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--divider);
 }
 
 .detail-item {
@@ -89,13 +89,13 @@
 
 .detail-label {
   font-weight: 600;
-  color: #666;
+  color: var(--text-muted);
   font-size: 0.9rem;
   min-width: 80px;
 }
 
 .detail-value {
-  color: #213547;
+  color: var(--text);
   font-size: 0.9rem;
 }
 
@@ -105,7 +105,7 @@
 
 .skills-label {
   font-weight: 600;
-  color: #666;
+  color: var(--text-muted);
   font-size: 0.9rem;
   display: block;
   margin-bottom: 8px;
@@ -119,8 +119,8 @@
 
 .skill-badge {
   padding: 6px 12px;
-  background-color: #f0f0f0;
-  color: #555;
+  background-color: var(--surface-subtle);
+  color: var(--text-muted);
   border-radius: 16px;
   font-size: 0.85rem;
   font-weight: 500;
@@ -133,7 +133,7 @@
 }
 
 .application-docs a {
-  color: #667eea;
+  color: var(--link);
   font-weight: 600;
   text-decoration: none;
 }
@@ -150,7 +150,7 @@
 
 .btn-accept {
   flex: 1;
-  background-color: #4caf50;
+  background-color: var(--primary);
   color: white;
   padding: 10px 20px;
   border: none;
@@ -161,12 +161,12 @@
 }
 
 .btn-accept:hover {
-  background-color: #45a049;
+  background-color: var(--primary-hover);
 }
 
 .btn-reject {
   flex: 1;
-  background-color: #f44336;
+  background-color: var(--navy);
   color: white;
   padding: 10px 20px;
   border: none;
@@ -177,5 +177,5 @@
 }
 
 .btn-reject:hover {
-  background-color: #da190b;
+  background-color: var(--blue);
 }

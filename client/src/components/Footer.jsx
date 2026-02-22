@@ -1,26 +1,30 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import './Footer.css';
 
 const Footer = () => {
   return (
     <footer className="footer">
       <div className="footer-container">
-        <div className="footer-content">
+        <div className="footer-content footer-content--clean">
           <div className="footer-section">
             <h4>Jengo</h4>
-            <p>Connecting volunteers with nonprofits to create meaningful impact.</p>
+            <p>Swipe, match, and volunteer with nonprofits that fit you.</p>
           </div>
           <div className="footer-section">
-            <h4>For Volunteers</h4>
+            <h4>Links</h4>
             <ul>
-              <li><a href="/opportunities">Browse Opportunities</a></li>
-              <li><a href="/#how-it-works">How It Works</a></li>
+              <li><Link to="/opportunities">Browse Opportunities</Link></li>
+              <li><Link to="/#how-it-works">How It Works</Link></li>
+              <li><Link to="/login">Sign in</Link></li>
+              <li><Link to="/register">Get started</Link></li>
             </ul>
           </div>
           <div className="footer-section">
-            <h4>For Nonprofits</h4>
+            <h4>Support</h4>
             <ul>
-              <li><a href="/login">Post Opportunity</a></li>
+              <li><a href="mailto:support@jengo.app">support@jengo.app</a></li>
+              <li><Link to="/login">Post Opportunity</Link></li>
             </ul>
           </div>
           <div className="footer-section">
@@ -32,7 +36,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="footer-bottom">
-          <p>&copy; 2026 Jengo. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Jengo. All rights reserved.</p>
         </div>
       </div>
     </footer>

@@ -1,0 +1,106 @@
+.swipe {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.swipe__stage {
+  position: relative;
+  height: 420px;
+}
+
+.swipe__card {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  padding: 18px;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.swipe__label {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  border: 2px solid currentColor;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.swipe__label.like {
+  color: var(--success);
+}
+
+.swipe__label.pass {
+  color: var(--danger);
+}
+
+.swipe__empty {
+  height: 100%;
+  border-radius: 16px;
+  border: 1px dashed color-mix(in srgb, var(--border) 60%, var(--blue));
+  background: var(--bg-subtle);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 24px;
+}
+
+.swipe__emptyTitle {
+  font-weight: 900;
+  color: var(--text);
+  font-size: 1.15rem;
+}
+
+.swipe__emptyBody {
+  margin-top: 6px;
+  color: var(--text-muted);
+}
+
+.swipe__actions {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.swipe__btn {
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-weight: 900;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.swipe__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.swipe__btn--pass:hover {
+  background: color-mix(in srgb, var(--danger) 10%, white);
+  border-color: color-mix(in srgb, var(--danger) 35%, var(--border));
+}
+
+.swipe__btn--like:hover {
+  background: color-mix(in srgb, var(--success) 10%, white);
+  border-color: color-mix(in srgb, var(--success) 35%, var(--border));
+}
+
+.swipe__count {
+  color: var(--text-muted);
+  font-weight: 800;
+  font-size: 0.9rem;
+  text-align: center;
+}
+

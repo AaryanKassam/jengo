@@ -50,25 +50,25 @@
   border: none;
   cursor: pointer;
   color: white;
-  background-color: var(--orange);
+  background-color: var(--primary);
 }
 
 .btn-primary:hover {
   transform: scale(1.05);
-  background-color: #ff7f50;
+  background-color: var(--peach);
   color: white;
 }
 
 .btn-secondary:hover {
   transform: scale(1.05);
-  color: rgb(0, 0, 0);
-  background-color: #f3f4f6;
+  color: var(--text);
+  background-color: var(--surface-subtle);
 }
 
 /* Features Section */
 .features-section {
   padding: 80px 20px;
-  background-color: #f8f9fa;
+  background-color: var(--surface-subtle);
 }
 
 .container {
@@ -81,7 +81,7 @@
   font-weight: 700;
   text-align: center;
   margin-bottom: 60px;
-  color: #213547;
+  color: var(--text);
 }
 
 .features-grid {
@@ -91,17 +91,17 @@
 }
 
 .feature-card {
-  background: white;
+  background: var(--surface);
   padding: 40px 32px;
   border-radius: 12px;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-sm);
   transition: transform 0.3s, box-shadow 0.3s;
 }
 
 .feature-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-md);
 }
 
 .feature-icon {
@@ -112,11 +112,11 @@
 .feature-card h3 {
   font-size: 1.5rem;
   margin-bottom: 16px;
-  color: #213547;
+  color: var(--text);
 }
 
 .feature-card p {
-  color: #666;
+  color: var(--text-muted);
   line-height: 1.6;
 }
 

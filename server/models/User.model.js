@@ -8,6 +8,10 @@ const userSchema = new mongoose.Schema(
       required: [true, 'Name is required'],
       trim: true
     },
+    pronouns: {
+      type: String,
+      trim: true
+    },
     username: {
       type: String,
       required: [true, 'Username is required'],
@@ -31,7 +35,16 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true
     },
+    age: {
+      type: Number,
+      min: 0,
+      max: 150
+    },
     profilePhoto: {
+      type: String,
+      default: ''
+    },
+    pitchVideoUrl: {
       type: String,
       default: ''
     },
@@ -49,6 +62,10 @@ const userSchema = new mongoose.Schema(
       type: [String],
       default: []
     },
+    interests: {
+      type: [String],
+      default: []
+    },
     resume: {
       type: String, // PDF link
       default: ''
@@ -61,6 +78,14 @@ const userSchema = new mongoose.Schema(
     organizationDescription: {
       type: String,
       trim: true
+    },
+    neededSkills: {
+      type: [String],
+      default: []
+    },
+    neededInterests: {
+      type: [String],
+      default: []
     },
     website: {
       type: String,
@@ -83,6 +108,17 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ['pending', 'verified', 'rejected'],
       default: 'pending'
+    },
+    matchingProfile: {
+      text: {
+        type: String,
+        trim: true,
+        default: ''
+      },
+      keywords: {
+        type: [String],
+        default: []
+      }
     }
   },
   {

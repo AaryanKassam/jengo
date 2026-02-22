@@ -1,20 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import OpportunityCard from '../components/OpportunityCard';
 import { mockOpportunities } from '../utils/mockData';
 import './Opportunities.css';
 
 const Opportunities = () => {
-  const [opportunities, setOpportunities] = useState([]);
-  const navigate = useNavigate();
-
-  useEffect(() => {
+  const [opportunities] = useState(() => {
     const storedOpportunities = JSON.parse(localStorage.getItem('opportunities') || 'null');
     const initial = Array.isArray(storedOpportunities) && storedOpportunities.length > 0
       ? storedOpportunities
       : mockOpportunities;
-    setOpportunities(initial);
-  }, []);
+    return initial;
+  });
 
   return (
     <div className="opportunities-page">

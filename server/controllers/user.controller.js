@@ -54,3 +54,81 @@ export const updateUserProfile = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// @desc    Upload pitch video
+// @route   POST /api/users/:id/pitch-video
+// @access  Private (own profile only)
+export const uploadMyPitchVideo = async (req, res) => {
+  try {
+    if (req.user._id.toString() !== req.params.id) {
+      return res.status(403).json({ message: 'Not authorized to update this profile' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'No video uploaded' });
+    }
+
+    const pitchVideoUrl = `/uploads/pitch-videos/${req.file.filename}`;
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { pitchVideoUrl },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    res.json({ user, pitchVideoUrl });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Upload resume
+// @route   POST /api/users/:id/resume
+// @access  Private (own profile only)
+export const uploadMyResume = async (req, res) => {
+  try {
+    if (req.user._id.toString() !== req.params.id) {
+      return res.status(403).json({ message: 'Not authorized to update this profile' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'No resume uploaded' });
+    }
+
+    const resumeUrl = `/uploads/resumes/${req.file.filename}`;
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { resume: resumeUrl },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    res.json({ user, resumeUrl });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Upload profile photo
+// @route   POST /api/users/:id/profile-photo
+// @access  Private (own profile only)
+export const uploadMyProfilePhoto = async (req, res) => {
+  try {
+    if (req.user._id.toString() !== req.params.id) {
+      return res.status(403).json({ message: 'Not authorized to update this profile' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'No profile photo uploaded' });
+    }
+
+    const profilePhoto = `/uploads/profile-photos/${req.file.filename}`;
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { profilePhoto },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    res.json({ user, profilePhoto });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

@@ -1,12 +1,14 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Sidebar.css';
+import jengoLogo from '../assets/jengo-logo.svg';
 
 const Sidebar = ({ activeTab, setActiveTab, role = 'volunteer' }) => {
   const navigate = useNavigate();
-  const userCredits = 179; // Mock credits
 
   const volunteerMenuItems = [
+    { id: 'discover', label: 'Go Jengo', icon: '🐦' },
+    { id: 'matches', label: 'Matches', icon: '🤝' },
     { id: 'opportunities', label: 'Opportunities', icon: '⊞' },
     { id: 'saved', label: 'Saved Opportunities', icon: '🔖' },
     { id: 'applications', label: 'My Applications', icon: '📋' },
@@ -19,6 +21,7 @@ const Sidebar = ({ activeTab, setActiveTab, role = 'volunteer' }) => {
     { id: 'create', label: 'Create Opportunity', icon: '➕' },
     { id: 'my-postings', label: 'My Opportunities', icon: '📝' },
     { id: 'applicants', label: 'Applicants', icon: '👥' },
+    { id: 'matches', label: 'Matches', icon: '🤝' },
     { id: 'resources', label: 'Resources', icon: '💼' },
     { id: 'profile', label: 'Profile', icon: '👤' }
   ];
@@ -26,6 +29,7 @@ const Sidebar = ({ activeTab, setActiveTab, role = 'volunteer' }) => {
   const menuItems = role === 'volunteer' ? volunteerMenuItems : nonprofitMenuItems;
 
   const handleLogout = () => {
+    localStorage.removeItem('token');
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('currentUser');
     navigate('/');
@@ -34,9 +38,8 @@ const Sidebar = ({ activeTab, setActiveTab, role = 'volunteer' }) => {
   return (
     <div className="sidebar">
       <div className="sidebar-header">
-        <div className="logo-container">
-          <div className="logo-icon">🤖</div>
-          <span className="logo-text">Jengo</span>
+        <div className="logo-container" aria-label="Jengo">
+          <img className="logo-img" src={jengoLogo} alt="Jengo" />
         </div>
       </div>
 

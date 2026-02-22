@@ -1,26 +1,32 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import './OpportunityDetails.css';
 import { mockOpportunities, mockApplications } from '../utils/mockData';
 
+function nowIso() {
+  return new Date().toISOString();
+}
+
+function makeId(prefix) {
+  return `${prefix}${Date.now()}`;
+}
+
 const OpportunityDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [opportunity, setOpportunity] = useState(null);
-  const [isSaved, setIsSaved] = useState(false);
   const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
 
-  useEffect(() => {
+  const opportunity = useMemo(() => {
     const storedOpportunities = JSON.parse(localStorage.getItem('opportunities') || 'null');
     const allOpportunities = Array.isArray(storedOpportunities) && storedOpportunities.length > 0
       ? storedOpportunities
       : mockOpportunities;
-    const selected = allOpportunities.find((opp) => opp.id === id);
-    setOpportunity(selected || null);
-
-    const saved = JSON.parse(localStorage.getItem('savedOpportunities') || '[]');
-    setIsSaved(saved.includes(id));
+    return allOpportunities.find((opp) => opp.id === id) || null;
   }, [id]);
+
+  const [, setSavedTick] = useState(0);
+  const saved = JSON.parse(localStorage.getItem('savedOpportunities') || '[]');
+  const isSaved = saved.includes(id);
 
   if (!opportunity) {
     return (
@@ -39,17 +45,20 @@ const OpportunityDetails = () => {
   const skills = opportunity.skillsRequired || opportunity.skills || [];
   const isClosed = opportunity.status === 'closed';
   const isVolunteer = currentUser?.role === 'volunteer';
+  const workMode =
+    opportunity.workMode ||
+    (typeof opportunity.location === 'string' && opportunity.location.toLowerCase() === 'remote'
+      ? 'Remote'
+      : 'In person');
 
   const handleSave = () => {
-    const saved = JSON.parse(localStorage.getItem('savedOpportunities') || '[]');
     if (saved.includes(opportunity.id)) {
       const updated = saved.filter((savedId) => savedId !== opportunity.id);
       localStorage.setItem('savedOpportunities', JSON.stringify(updated));
-      setIsSaved(false);
     } else {
       localStorage.setItem('savedOpportunities', JSON.stringify([...saved, opportunity.id]));
-      setIsSaved(true);
     }
+    setSavedTick((t) => t + 1);
   };
 
   const handleApply = () => {
@@ -76,7 +85,7 @@ const OpportunityDetails = () => {
     }
 
     const newApplication = {
-      id: `app${Date.now()}`,
+      id: makeId('app'),
       opportunityId: opportunity.id,
       volunteerId: currentUser?.id || 'vol1',
       volunteerName: currentUser?.name || 'You',
@@ -86,7 +95,7 @@ const OpportunityDetails = () => {
       volunteerResume: currentUser?.resume || '',
       volunteerForm: currentUser?.volunteerForm || '',
       status: 'applied',
-      appliedAt: new Date().toISOString(),
+      appliedAt: nowIso(),
       opportunityTitle: opportunity.title
     };
 
@@ -109,7 +118,7 @@ const OpportunityDetails = () => {
 
         <div className="details-meta">
           <span className={`status-pill ${isClosed ? 'closed' : 'open'}`}>
-            {isClosed ? 'Closed' : 'Open'}
+            {isClosed ? 'Closed' : workMode}
           </span>
           <span>Category: {opportunity.category}</span>
           <span>Estimated hours: {opportunity.estimatedHours}</span>
