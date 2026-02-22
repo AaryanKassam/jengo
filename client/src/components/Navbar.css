@@ -10,7 +10,9 @@
 .navbar-container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 16px 32px;
+  box-sizing: border-box;
+  height: 60px;
+  padding: 0 32px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -25,9 +27,11 @@
   font-weight: 700;
 }
 
-.navbar-logo__img {
-  height: 30px;
-  width: auto;
+.navbar-logo .hero-logo {
+  width: 100px;
+  height: 100px;
+  overflow: visible;
+  margin: -10px;
   display: block;
 }
 
@@ -84,7 +88,7 @@
 
 @media (max-width: 768px) {
   .navbar-container {
-    padding: 12px 20px;
+    padding: 0 20px;
   }
   
   .navbar-menu {

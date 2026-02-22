@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Sidebar.css';
-import jengoLogo from '../assets/jengo-logo.svg';
+import jengoLogo from '../assets/jengologo.png';
 
 const Sidebar = ({ activeTab, setActiveTab, role = 'volunteer' }) => {
   const navigate = useNavigate();
@@ -39,7 +39,7 @@ const Sidebar = ({ activeTab, setActiveTab, role = 'volunteer' }) => {
     <div className="sidebar">
       <div className="sidebar-header">
         <div className="logo-container" aria-label="Jengo">
-          <img className="logo-img" src={jengoLogo} alt="Jengo" />
+          <img className="hero-logo" src={jengoLogo} alt="Jengo" />
         </div>
       </div>
 

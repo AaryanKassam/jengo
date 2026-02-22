@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import OpportunityCard from '../components/OpportunityCard';
 import CreateOpportunity from '../components/CreateOpportunity';
@@ -13,17 +13,13 @@ import {
   getAllProfileLikes,
   getAllTaskLikes,
   getPitchVideoUrl,
-  getSeenTasks,
-  likeTask,
   likeVolunteerProfile,
-  markTaskSeen,
-  resetSeenTasks,
   resolveMediaUrl
 } from '../utils/matchmaking';
 import './Dashboard.css';
 import { setPitchVideoUrl } from '../utils/matchmaking';
 import api from '../services/api';
-import jengoLogo from '../assets/jengo-logo.svg';
+import jengoLogo from '../assets/jengologo.png';
 
 function extractKeywords(text, max = 20) {
   const stop = new Set([
@@ -104,7 +100,6 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const menuRef = useRef(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [discoverMode, setDiscoverMode] = useState('swipe'); // 'swipe' | 'matches'
   const resumeInputRef = useRef(null);
   const profilePhotoInputRef = useRef(null);
   const [isResumeDragOver, setIsResumeDragOver] = useState(false);
@@ -1318,6 +1313,9 @@ const Dashboard = () => {
       <div className="dashboard-main">
         <header className="dashboard-header">
           <div className="header-left">
+            <Link to="/" className="dashboard-logo" aria-label="Jengo">
+              <img className="hero-logo" src={jengoLogo} alt="Jengo" />
+            </Link>
             <h1 className="dashboard-title">{getTitle()}</h1>
           </div>
           <div className="header-right">

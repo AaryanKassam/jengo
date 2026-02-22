@@ -23,11 +23,34 @@
   z-index: 10;
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.dashboard-logo {
+  display: none;
+  align-items: center;
+  text-decoration: none;
+  flex: 0 0 auto;
+}
+
+.dashboard-logo .hero-logo {
+  height: 28px;
+  width: auto;
+  display: block;
+}
+
 .dashboard-title {
   font-size: 1.75rem;
   font-weight: 700;
   color: var(--text);
   margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .header-right {
@@ -493,6 +516,10 @@
 @media (max-width: 1024px) {
   .dashboard-main {
     margin-left: 0;
+  }
+
+  .dashboard-logo {
+    display: flex;
   }
   
   .opportunities-grid {
