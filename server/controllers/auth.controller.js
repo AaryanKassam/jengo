@@ -6,7 +6,23 @@ import { generateToken } from '../config/jwt.js';
 // @access  Public
 export const register = async (req, res) => {
   try {
-    const { name, username, email, password, role } = req.body;
+    const {
+      name,
+      pronouns,
+      username,
+      email,
+      password,
+      role,
+      location,
+      age,
+      skills,
+      interests,
+      neededSkills,
+      neededInterests,
+      organizationDescription,
+      website,
+      matchingProfile
+    } = req.body;
 
     // Check if user already exists
     const userExists = await User.findOne({ $or: [{ email }, { username }] });
@@ -17,23 +33,27 @@ export const register = async (req, res) => {
     // Create user
     const user = await User.create({
       name,
+      pronouns,
       username,
       email,
       password,
-      role
+      role,
+      location,
+      age: role === 'volunteer' ? age : undefined,
+      skills: role === 'volunteer' ? skills : undefined,
+      interests: role === 'volunteer' ? interests : undefined,
+      neededSkills: role === 'nonprofit' ? neededSkills : undefined,
+      neededInterests: role === 'nonprofit' ? neededInterests : undefined,
+      organizationDescription: role === 'nonprofit' ? organizationDescription : undefined,
+      website: role === 'nonprofit' ? website : undefined,
+      matchingProfile
     });
 
     if (user) {
       const token = generateToken(user._id);
       res.status(201).json({
         token,
-        user: {
-          _id: user._id,
-          name: user.name,
-          username: user.username,
-          email: user.email,
-          role: user.role
-        }
+        user: user.toPublicJSON()
       });
     } else {
       res.status(400).json({ message: 'Invalid user data' });
@@ -65,13 +85,7 @@ export const login = async (req, res) => {
     const token = generateToken(user._id);
     res.json({
       token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        username: user.username,
-        email: user.email,
-        role: user.role
-      }
+      user: user.toPublicJSON()
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

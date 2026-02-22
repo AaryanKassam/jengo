@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Navbar.css';
+import jengoLogo from '../assets/jengo-logo.svg';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -15,9 +16,8 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="navbar-container">
-        <Link to="/" className="navbar-logo">
-          <span className="logo-icon">🤖</span>
-          <span className="logo-text">Jengo</span>
+        <Link to="/" className="navbar-logo" aria-label="Jengo">
+          <img className="navbar-logo__img" src={jengoLogo} alt="" />
         </Link>
         
         <div className="navbar-menu">

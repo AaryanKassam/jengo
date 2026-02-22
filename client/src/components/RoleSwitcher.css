@@ -1,7 +1,7 @@
 .role-switcher {
   display: flex;
   gap: 8px;
-  background-color: #f5f5f5;
+  background-color: var(--surface-subtle-2);
   padding: 4px;
   border-radius: 8px;
 }
@@ -10,7 +10,7 @@
   padding: 8px 16px;
   border: none;
   background: transparent;
-  color: #666;
+  color: var(--text-muted);
   font-weight: 500;
   font-size: 0.9rem;
   cursor: pointer;
@@ -20,15 +20,15 @@
 }
 
 .role-btn:hover {
-  background-color: #e8e8e8;
-  color: #213547;
+  background-color: var(--surface-subtle);
+  color: var(--text);
 }
 
 .role-btn.active {
-  background-color: #667eea;
+  background-color: var(--primary);
   color: white;
 }
 
 .role-btn.active:hover {
-  background-color: #5a6fd8;
+  background-color: var(--primary-hover);
 }

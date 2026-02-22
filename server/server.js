@@ -2,6 +2,8 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import path from 'path';
 import authRoutes from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
 import opportunityRoutes from './routes/opportunity.routes.js';
@@ -15,6 +17,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -30,8 +33,33 @@ app.get('/api/health', (req, res) => {
 // Database connection
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/jengo');
-    console.log('MongoDB connected successfully');
+    const configuredUri = process.env.MONGODB_URI;
+    const localUri = 'mongodb://localhost:27017/jengo';
+
+    try {
+      await mongoose.connect(configuredUri || localUri);
+      console.log('MongoDB connected successfully');
+      return;
+    } catch (error) {
+      if (configuredUri) throw error;
+      console.warn('Local MongoDB not available, starting in-memory MongoDB for development...');
+    }
+
+    const mongod = await MongoMemoryServer.create();
+    const inMemoryUri = mongod.getUri('jengo');
+    await mongoose.connect(inMemoryUri);
+    console.log('MongoDB (in-memory) connected successfully');
+
+    const shutdown = async () => {
+      try {
+        await mongoose.disconnect();
+      } finally {
+        await mongod.stop();
+      }
+    };
+
+    process.once('SIGINT', shutdown);
+    process.once('SIGTERM', shutdown);
   } catch (error) {
     console.error('MongoDB connection error:', error);
     process.exit(1);

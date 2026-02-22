@@ -1,6 +1,7 @@
 // API service for making HTTP requests to the backend
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://jengo.onrender.com/api';
+const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');
 
 const api = {
   // Auth endpoints
@@ -50,6 +51,50 @@ const api = {
       body: JSON.stringify(userData)
     });
     return response.json();
+  },
+
+  uploadPitchVideo: async (userId, file) => {
+    const token = localStorage.getItem('token');
+    const form = new FormData();
+    form.append('video', file);
+    const response = await fetch(`${API_BASE_URL}/users/${userId}/pitch-video`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: form
+    });
+    return response.json();
+  },
+
+  uploadResume: async (userId, file) => {
+    const token = localStorage.getItem('token');
+    const form = new FormData();
+    form.append('resume', file);
+    const response = await fetch(`${API_BASE_URL}/users/${userId}/resume`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: form
+    });
+    return response.json();
+  },
+
+  uploadProfilePhoto: async (userId, file) => {
+    const token = localStorage.getItem('token');
+    const form = new FormData();
+    form.append('photo', file);
+    const response = await fetch(`${API_BASE_URL}/users/${userId}/profile-photo`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: form
+    });
+    return response.json();
+  },
+
+  resolveMediaUrl: (url) => {
+    if (!url) return '';
+    if (url.startsWith('blob:')) return url;
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    if (url.startsWith('/')) return `${API_ORIGIN}${url}`;
+    return url;
   },
 
   // Opportunity endpoints

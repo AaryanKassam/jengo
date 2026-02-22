@@ -1,15 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './OpportunityCard.css';
 
 const OpportunityCard = ({ opportunity, onApply, onClose, showApply = true, showStatus = true }) => {
-  const [isSaved, setIsSaved] = useState(false);
-  const navigate = useNavigate();
-
-  useEffect(() => {
+  const [isSaved, setIsSaved] = useState(() => {
     const saved = JSON.parse(localStorage.getItem('savedOpportunities') || '[]');
-    setIsSaved(saved.includes(opportunity.id));
-  }, [opportunity.id]);
+    return saved.includes(opportunity.id);
+  });
+  const navigate = useNavigate();
 
   const handleSave = (e) => {
     e.stopPropagation();
@@ -45,6 +43,11 @@ const OpportunityCard = ({ opportunity, onApply, onClose, showApply = true, show
 
   const skills = opportunity.skillsRequired || opportunity.skills || [];
   const isClosed = opportunity.status === 'closed';
+  const workMode =
+    opportunity.workMode ||
+    (typeof opportunity.location === 'string' && opportunity.location.toLowerCase() === 'remote'
+      ? 'Remote'
+      : 'In person');
 
   return (
     <div className="opportunity-card" onClick={() => navigate(`/opportunities/${opportunity.id}`)}>
@@ -56,7 +59,7 @@ const OpportunityCard = ({ opportunity, onApply, onClose, showApply = true, show
           <span className="time-posted">{getTimeAgo(opportunity.postedTime)}</span>
           {showStatus && (
             <span className={`status-pill ${isClosed ? 'closed' : 'open'}`}>
-              {isClosed ? 'Closed' : 'Open'}
+              {isClosed ? 'Closed' : workMode}
             </span>
           )}
         </div>
