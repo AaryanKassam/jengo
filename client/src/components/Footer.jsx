@@ -8,10 +8,6 @@ const Footer = () => {
       <div className="footer-container">
         <div className="footer-content footer-content--clean">
           <div className="footer-section">
-            <h4>Jengo</h4>
-            <p>Swipe, match, and volunteer with nonprofits that fit you.</p>
-          </div>
-          <div className="footer-section">
             <h4>Links</h4>
             <ul>
               <li><Link to="/opportunities">Browse Opportunities</Link></li>
