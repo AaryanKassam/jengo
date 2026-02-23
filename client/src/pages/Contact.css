@@ -211,6 +211,15 @@
   font-weight: 600;
 }
 
+.contact-error {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-weight: 600;
+}
+
 @keyframes float {
   0%,
   100% {
