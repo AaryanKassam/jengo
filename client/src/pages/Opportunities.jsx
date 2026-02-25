@@ -1,16 +1,22 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import OpportunityCard from '../components/OpportunityCard';
-import { mockOpportunities } from '../utils/mockData';
+import api from '../services/api';
+import { normalizeOpportunity } from '../utils/apiTransform';
 import './Opportunities.css';
 
 const Opportunities = () => {
-  const [opportunities] = useState(() => {
-    const storedOpportunities = JSON.parse(localStorage.getItem('opportunities') || 'null');
-    const initial = Array.isArray(storedOpportunities) && storedOpportunities.length > 0
-      ? storedOpportunities
-      : mockOpportunities;
-    return initial;
-  });
+  const [opportunities, setOpportunities] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.getOpportunities()
+      .then((data) => {
+        const list = (data.opportunities || []).map(normalizeOpportunity);
+        setOpportunities(list);
+      })
+      .catch(() => setOpportunities([]))
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <div className="opportunities-page">
@@ -22,7 +28,11 @@ const Opportunities = () => {
       </div>
       <div className="opportunities-content">
         <div className="container">
-          {opportunities.length === 0 ? (
+          {loading ? (
+            <div className="empty-state">
+              <p>Loading opportunities…</p>
+            </div>
+          ) : opportunities.length === 0 ? (
             <div className="empty-state">
               <h3>No opportunities available</h3>
               <p>Check back soon for new volunteer opportunities!</p>

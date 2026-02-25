@@ -30,6 +30,20 @@ const opportunitySchema = new mongoose.Schema(
       required: [true, 'Estimated hours is required'],
       min: 1
     },
+    deadline: {
+      type: Date,
+      default: null
+    },
+    location: {
+      type: String,
+      trim: true,
+      default: ''
+    },
+    workMode: {
+      type: String,
+      trim: true,
+      default: 'In person'
+    },
     status: {
       type: String,
       enum: ['open', 'closed'],

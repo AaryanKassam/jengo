@@ -87,7 +87,7 @@ export const getOpportunityApplications = async (req, res) => {
     }
 
     const applications = await Application.find({ opportunity: req.params.id })
-      .populate('volunteer', 'name username email school skills resume volunteerForm profilePhoto')
+      .populate('volunteer', 'name username email school skills interests resume volunteerForm profilePhoto pitchVideoUrl')
       .sort({ createdAt: -1 });
 
     res.json({ applications });

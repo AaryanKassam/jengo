@@ -42,17 +42,22 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Jengo API is running' });
 });
 
-// Database connection
+// Database connection - use real MongoDB for persistence
 const connectDB = async () => {
   try {
-    const configuredUri = process.env.MONGODB_URI;
+    const configuredUri = process.env.MONGODB_URI?.trim();
     const localUri = 'mongodb://localhost:27017/jengo';
+    const uri = configuredUri || localUri;
 
     try {
-      await mongoose.connect(configuredUri || localUri);
+      await mongoose.connect(uri);
+      if (!configuredUri && uri === localUri) {
+        console.log('Using local MongoDB. Set MONGODB_URI in .env for cloud persistence (e.g. MongoDB Atlas).');
+      }
     } catch (error) {
       if (configuredUri) throw error;
-      console.warn('Local MongoDB not available, starting in-memory MongoDB for development...');
+      console.warn('Local MongoDB not available. Starting in-memory MongoDB (data is lost on restart).');
+      console.warn('For persistence: run MongoDB locally or set MONGODB_URI in server/.env (see .env.example)');
 
       const mongod = await MongoMemoryServer.create();
       const inMemoryUri = mongod.getUri('jengo');

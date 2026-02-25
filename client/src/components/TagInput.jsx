@@ -25,12 +25,21 @@ export default function TagInput({
   const suggestionSet = useMemo(() => new Set(suggestions.map((s) => s.toLowerCase())), [suggestions]);
 
   const addTag = (raw) => {
-    const next = normalizeTag(raw);
-    if (!next) return;
-    if (normalizedValues.map((v) => v.toLowerCase()).includes(next.toLowerCase())) return;
-    if (normalizedValues.length >= maxItems) return;
+    const parts = raw.split(/[,;\n]/).map((p) => normalizeTag(p)).filter(Boolean);
+    if (parts.length === 0) return;
 
-    onChange([...normalizedValues, next]);
+    const existing = new Set(normalizedValues.map((v) => v.toLowerCase()));
+    const toAdd = [];
+    for (const p of parts) {
+      if (toAdd.length + normalizedValues.length >= maxItems) break;
+      if (!existing.has(p.toLowerCase())) {
+        toAdd.push(p);
+        existing.add(p.toLowerCase());
+      }
+    }
+    if (toAdd.length > 0) {
+      onChange([...normalizedValues, ...toAdd]);
+    }
     setDraft('');
   };
 

@@ -22,7 +22,9 @@ npm install
 cp .env.example .env
 ```
 
-3. Update the `.env` file with your MongoDB connection string and JWT secret.
+3. Update the `.env` file:
+   - `MONGODB_URI` - MongoDB connection string (required for data persistence). Use [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) (free tier) or local `mongodb://localhost:27017/jengo`. Without this, the server falls back to in-memory MongoDB (data is lost on restart).
+   - `SKIP_EMAIL_VERIFICATION=true` - Optional. Skip email verification in development so you can register and log in immediately.
 
 4. Start the development server:
 ```bash
@@ -37,6 +39,7 @@ npm run dev
 - `GET /api/auth/me` - Get current user (protected)
 
 ### Users
+- `GET /api/users/volunteers` - List all volunteers (protected, for Network/Reach Out)
 - `GET /api/users/:id` - Get user profile (protected)
 - `PUT /api/users/:id` - Update user profile (protected, own profile only)
 

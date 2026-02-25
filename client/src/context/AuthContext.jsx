@@ -56,6 +56,9 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(true);
         return { success: true, user: data.user, token: data.token };
       }
+      if (data.requiresVerification) {
+        return { success: true, requiresVerification: true, user: data.user, devLink: data.devLink };
+      }
       return { success: false, error: data.message };
     } catch (error) {
       return { success: false, error: error.message };

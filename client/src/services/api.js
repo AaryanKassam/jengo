@@ -11,20 +11,49 @@ const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');
 const api = {
   // Auth endpoints
   register: async (userData) => {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userData)
-    });
-    return response.json();
+    let response;
+    try {
+      response = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+      });
+    } catch (err) {
+      const msg = err?.message?.toLowerCase?.().includes('fetch') || err?.message === 'Failed to fetch'
+        ? 'Could not reach the server. Make sure the backend is running (e.g. npm run dev).'
+        : err?.message || 'Network error';
+      throw new Error(msg);
+    }
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data?.message || `Registration failed (${response.status})`);
+    }
+    return data;
   },
 
   login: async (credentials) => {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(credentials)
-    });
+    let response;
+    try {
+      response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credentials)
+      });
+    } catch (err) {
+      const msg = err?.message?.toLowerCase?.().includes('fetch') || err?.message === 'Failed to fetch'
+        ? 'Could not reach the server. Make sure the backend is running (e.g. npm run dev).'
+        : err?.message || 'Network error';
+      throw new Error(msg);
+    }
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data?.message || `Login failed (${response.status})`);
+    }
+    return data;
+  },
+
+  verifyEmail: async (token) => {
+    const response = await fetch(`${API_BASE_URL}/auth/verify-email?token=${encodeURIComponent(token)}`);
     return response.json();
   },
 
@@ -46,6 +75,14 @@ const api = {
   },
 
   // User endpoints
+  getVolunteers: async () => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/users/volunteers`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.json();
+  },
+
   getUserProfile: async (userId) => {
     const token = localStorage.getItem('token');
     const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
@@ -139,6 +176,19 @@ const api = {
     const token = localStorage.getItem('token');
     const response = await fetch(`${API_BASE_URL}/opportunities/my`, {
       headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.json();
+  },
+
+  updateOpportunity: async (opportunityId, data) => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/opportunities/${opportunityId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(data)
     });
     return response.json();
   },

@@ -1,5 +1,33 @@
 import User from '../models/User.model.js';
 
+// @desc    Get all volunteers (public profile for Network/Reach Out)
+// @route   GET /api/users/volunteers
+// @access  Private (nonprofit or volunteer)
+export const getVolunteers = async (req, res) => {
+  try {
+    const volunteers = await User.find({ role: 'volunteer', emailVerified: true })
+      .select('_id name email school skills interests profilePhoto pitchVideoUrl location')
+      .lean();
+
+    const list = volunteers.map((v) => ({
+      id: v._id.toString(),
+      _id: v._id,
+      name: v.name,
+      email: v.email,
+      school: v.school || '',
+      skills: v.skills || [],
+      interests: v.interests || [],
+      profilePhoto: v.profilePhoto || '',
+      pitchVideoUrl: v.pitchVideoUrl || '',
+      location: v.location || ''
+    }));
+
+    res.json({ volunteers: list });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // @desc    Get user profile
 // @route   GET /api/users/:id
 // @access  Private

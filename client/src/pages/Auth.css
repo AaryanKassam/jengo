@@ -560,3 +560,37 @@
     grid-template-columns: 1fr;
   }
 }
+
+.verification-sent-card {
+  padding: 32px 0;
+  text-align: center;
+}
+
+.verification-sent-card .wizard-title {
+  margin-bottom: 12px;
+}
+
+.verification-sent-card .wizard-subtitle {
+  color: var(--text-muted);
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.verification-dev-link {
+  margin-top: 24px;
+  padding: 16px;
+  background: var(--surface-subtle);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+.verification-dev-link p {
+  margin: 0 0 8px 0;
+  color: var(--text-muted);
+}
+
+.verification-dev-link a {
+  word-break: break-all;
+  color: var(--link);
+}

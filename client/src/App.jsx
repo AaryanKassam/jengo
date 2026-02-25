@@ -7,6 +7,7 @@ import ScrollToTop from './components/ScrollToTop';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import VerifyEmail from './pages/VerifyEmail';
 import Opportunities from './pages/Opportunities';
 import OpportunityDetails from './pages/OpportunityDetails';
 import Dashboard from './pages/Dashboard';
@@ -40,6 +41,12 @@ const AppRoutes = () => {
             <>
               <Navbar />
               <Register />
+            </>
+          } />
+          <Route path="/verify-email" element={
+            <>
+              <Navbar />
+              <VerifyEmail />
             </>
           } />
           <Route path="/opportunities" element={

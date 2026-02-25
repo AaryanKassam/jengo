@@ -106,6 +106,8 @@ const Register = () => {
     password: '',
     confirmPassword: ''
   });
+  const [verificationSent, setVerificationSent] = useState(false);
+  const [verificationDevLink, setVerificationDevLink] = useState('');
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -124,8 +126,10 @@ const Register = () => {
       flow.push({ key: 'fullName', label: 'Name' });
     }
 
+    if (formData.role === 'volunteer') {
+      flow.push({ key: 'username', label: 'Username' });
+    }
     flow.push(
-      { key: 'username', label: 'Username' },
       { key: 'email', label: 'Email' },
       { key: 'password', label: 'Password' },
       { key: 'confirmPassword', label: 'Confirm' },
@@ -139,8 +143,6 @@ const Register = () => {
     } else {
       flow.push({ key: 'website', label: 'Website' });
       flow.push({ key: 'orgDescription', label: 'Description' });
-      flow.push({ key: 'neededSkills', label: 'Skills needed' });
-      flow.push({ key: 'neededInterests', label: 'Focus areas' });
     }
 
     return flow;
@@ -206,14 +208,6 @@ const Register = () => {
       if (formData.interests.length === 0) errors.interests = 'Add at least one interest.';
     }
 
-    if (key === 'neededSkills') {
-      if (formData.neededSkills.length === 0) errors.neededSkills = 'Add at least one skill you need.';
-    }
-
-    if (key === 'neededInterests') {
-      if (formData.neededInterests.length === 0) errors.neededInterests = 'Add at least one task/focus area.';
-    }
-
     if (key === 'password') {
       const allOk = Object.values(checks).every(Boolean);
       if (!allOk) errors.password = 'Password does not meet the requirements.';
@@ -248,7 +242,7 @@ const Register = () => {
           el = root.querySelector('.role-option');
         }
 
-        if (!el && (firstKey === 'skills' || firstKey === 'interests' || firstKey === 'neededSkills' || firstKey === 'neededInterests')) {
+        if (!el && (firstKey === 'skills' || firstKey === 'interests')) {
           el = root.querySelector('.tag-input input') || root.querySelector('.tag-input');
         }
 
@@ -347,7 +341,7 @@ const Register = () => {
       const payload = {
         name: displayName,
         pronouns: formData.role === 'volunteer' ? formData.pronouns.trim() : undefined,
-        username: formData.username.trim(),
+        username: formData.role === 'volunteer' ? formData.username.trim() : undefined,
         email: formData.email.trim(),
         password: formData.password,
         role: formData.role,
@@ -374,9 +368,14 @@ const Register = () => {
         return;
       }
 
+      if (result.requiresVerification) {
+        setVerificationSent(true);
+        setVerificationDevLink(result.devLink || '');
+        return;
+      }
+
       // Keep legacy localStorage flags so the rest of the app keeps working.
       localStorage.setItem('isAuthenticated', 'true');
-      // AuthContext already stored token and user; we also store a lightweight user object for existing dashboard logic.
       const safeUser = {
         id: result.user?._id,
         _id: result.user?._id,
@@ -621,38 +620,6 @@ const Register = () => {
           </>
         );
 
-      case 'neededSkills':
-        return (
-          <>
-            <div className="wizard-title">Skills you need</div>
-            <div className="wizard-subtitle">What skills should a volunteer bring?</div>
-            <TagInput
-              label="Needed skills"
-              values={formData.neededSkills}
-              onChange={(neededSkills) => setFormData({ ...formData, neededSkills })}
-              suggestions={VOLUNTEER_SKILL_SUGGESTIONS}
-              placeholder="Start typing a needed skill"
-            />
-            {stepErrors.neededSkills ? <div className="form-error">{stepErrors.neededSkills}</div> : null}
-          </>
-        );
-
-      case 'neededInterests':
-        return (
-          <>
-            <div className="wizard-title">Tasks / focus areas</div>
-            <div className="wizard-subtitle">What do you need help with?</div>
-            <TagInput
-              label="Focus areas"
-              values={formData.neededInterests}
-              onChange={(neededInterests) => setFormData({ ...formData, neededInterests })}
-              suggestions={INTEREST_SUGGESTIONS}
-              placeholder="Start typing a task or focus area"
-            />
-            {stepErrors.neededInterests ? <div className="form-error">{stepErrors.neededInterests}</div> : null}
-          </>
-        );
-
       case 'password':
         return (
           <>
@@ -732,6 +699,37 @@ const Register = () => {
   };
 
   const busy = submitting || completing;
+
+  if (verificationSent) {
+    return (
+      <div className="auth-page auth-page--signup">
+        <div className="auth-container auth-container--wide">
+          <div className="wizard verification-sent-card">
+            <div className="wizard-title">Check your email</div>
+            <div className="wizard-subtitle">
+              We sent a verification link to <strong>{formData.email}</strong>. Click the link to verify your account, then sign in.
+            </div>
+            {verificationDevLink && (
+              <div className="verification-dev-link">
+                <p>Development mode: no email configured. Use this link to verify:</p>
+                <a href={verificationDevLink} target="_blank" rel="noopener noreferrer">
+                  {verificationDevLink}
+                </a>
+              </div>
+            )}
+            <Link to="/login" className="btn btn-primary" style={{ marginTop: '24px', display: 'inline-block' }}>
+              Go to Sign in
+            </Link>
+          </div>
+          <div className="auth-footer">
+            <p>
+              Already have an account? <Link to="/login">Sign in</Link>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`auth-page auth-page--signup ${completing ? 'auth-page--completing' : ''} ${fadeOut ? 'auth-page--fade-out' : ''}`}>

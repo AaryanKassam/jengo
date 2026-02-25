@@ -1,32 +1,57 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
+import api from '../services/api';
+import { normalizeOpportunity } from '../utils/apiTransform';
 import './OpportunityDetails.css';
-import { mockOpportunities, mockApplications } from '../utils/mockData';
-
-function nowIso() {
-  return new Date().toISOString();
-}
-
-function makeId(prefix) {
-  return `${prefix}${Date.now()}`;
-}
 
 const OpportunityDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
-
-  const opportunity = useMemo(() => {
-    const storedOpportunities = JSON.parse(localStorage.getItem('opportunities') || 'null');
-    const allOpportunities = Array.isArray(storedOpportunities) && storedOpportunities.length > 0
-      ? storedOpportunities
-      : mockOpportunities;
-    return allOpportunities.find((opp) => opp.id === id) || null;
-  }, [id]);
-
+  const [opportunity, setOpportunity] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [hasApplied, setHasApplied] = useState(false);
   const [, setSavedTick] = useState(0);
   const saved = JSON.parse(localStorage.getItem('savedOpportunities') || '[]');
   const isSaved = saved.includes(id);
+
+  useEffect(() => {
+    if (!id) return;
+    api.getOpportunity(id)
+      .then((data) => {
+        if (data.opportunity) {
+          setOpportunity(normalizeOpportunity(data.opportunity));
+        } else {
+          setOpportunity(null);
+        }
+      })
+      .catch(() => setOpportunity(null))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  useEffect(() => {
+    if (!currentUser?.id || currentUser?.role !== 'volunteer' || !id) return;
+    api.getMyApplications()
+      .then((data) => {
+        const apps = data.applications || [];
+        const applied = apps.some((a) => {
+          const oppId = a.opportunity?._id || a.opportunity || a.opportunityId;
+          return oppId?.toString() === id;
+        });
+        setHasApplied(applied);
+      })
+      .catch(() => {});
+  }, [currentUser?.id, currentUser?.role, id]);
+
+  if (loading) {
+    return (
+      <div className="opportunity-details-page">
+        <div className="opportunity-details-card">
+          <p>Loading…</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!opportunity) {
     return (
@@ -61,7 +86,7 @@ const OpportunityDetails = () => {
     setSavedTick((t) => t + 1);
   };
 
-  const handleApply = () => {
+  const handleApply = async () => {
     if (!isVolunteer) {
       navigate('/login');
       return;
@@ -70,38 +95,21 @@ const OpportunityDetails = () => {
       alert('This opportunity is closed.');
       return;
     }
-
-    const storedApplications = JSON.parse(localStorage.getItem('applications') || 'null');
-    const allApplications = Array.isArray(storedApplications) && storedApplications.length > 0
-      ? storedApplications
-      : mockApplications;
-    const duplicate = allApplications.some(
-      (app) => app.opportunityId === opportunity.id && app.volunteerId === currentUser?.id
-    );
-
-    if (duplicate) {
+    if (hasApplied) {
       alert('You have already applied to this opportunity.');
       return;
     }
-
-    const newApplication = {
-      id: makeId('app'),
-      opportunityId: opportunity.id,
-      volunteerId: currentUser?.id || 'vol1',
-      volunteerName: currentUser?.name || 'You',
-      volunteerEmail: currentUser?.email || 'you@example.com',
-      volunteerSchool: currentUser?.school || 'Your School',
-      volunteerSkills: currentUser?.skills || ['General'],
-      volunteerResume: currentUser?.resume || '',
-      volunteerForm: currentUser?.volunteerForm || '',
-      status: 'applied',
-      appliedAt: nowIso(),
-      opportunityTitle: opportunity.title
-    };
-
-    const updatedApplications = [...allApplications, newApplication];
-    localStorage.setItem('applications', JSON.stringify(updatedApplications));
-    alert(`Applied to ${opportunity.title}!`);
+    try {
+      const data = await api.applyToOpportunity(opportunity.id);
+      if (data.application) {
+        setHasApplied(true);
+        alert(`Applied to ${opportunity.title}!`);
+      } else {
+        alert(data.message || 'Failed to apply');
+      }
+    } catch (err) {
+      alert(err?.message || 'Failed to apply');
+    }
   };
 
   return (
@@ -153,8 +161,8 @@ const OpportunityDetails = () => {
           <button className={`btn-save ${isSaved ? 'saved' : ''}`} onClick={handleSave}>
             {isSaved ? 'Saved' : 'Save'}
           </button>
-          <button className="btn-apply" onClick={handleApply} disabled={isClosed}>
-            {isClosed ? 'Closed' : isVolunteer ? 'Apply Now' : 'Sign in to Apply'}
+          <button className="btn-apply" onClick={handleApply} disabled={isClosed || hasApplied}>
+            {isClosed ? 'Closed' : hasApplied ? 'Applied' : isVolunteer ? 'Apply Now' : 'Sign in to Apply'}
           </button>
           <Link to="/opportunities" className="btn btn-secondary">
             Back to Opportunities

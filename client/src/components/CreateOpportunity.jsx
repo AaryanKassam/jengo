@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import api from '../services/api';
+import { normalizeOpportunity } from '../utils/apiTransform';
 import './CreateOpportunity.css';
 
 function extractKeywords(text, max = 20) {
@@ -20,7 +22,8 @@ function extractKeywords(text, max = 20) {
     .map(([k]) => k);
 }
 
-const CreateOpportunity = ({ onOpportunityCreated }) => {
+const CreateOpportunity = ({ onOpportunityCreated, onError }) => {
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -52,13 +55,17 @@ const CreateOpportunity = ({ onOpportunityCreated }) => {
 
   const handleAddSkill = (e) => {
     e.preventDefault();
-    if (currentSkill.trim() && !formData.skillsRequired.includes(currentSkill.trim())) {
+    const parts = currentSkill.split(/[,;\n]/).map((p) => p.trim()).filter(Boolean);
+    if (parts.length === 0) return;
+    const existing = new Set(formData.skillsRequired.map((s) => s.toLowerCase()));
+    const toAdd = parts.filter((p) => !existing.has(p.toLowerCase()));
+    if (toAdd.length > 0) {
       setFormData({
         ...formData,
-        skillsRequired: [...formData.skillsRequired, currentSkill.trim()]
+        skillsRequired: [...formData.skillsRequired, ...toAdd]
       });
-      setCurrentSkill('');
     }
+    setCurrentSkill('');
   };
 
   const handlePasteSkills = (e) => {
@@ -86,40 +93,40 @@ const CreateOpportunity = ({ onOpportunityCreated }) => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const matchText = [
-      formData.description || '',
-      (formData.skillsRequired || []).join(' '),
-      formData.category || '',
-      formData.title || ''
-    ].join(' ');
-    const keywords = extractKeywords(matchText);
-    const newOpportunity = {
-      id: Date.now().toString(),
-      ...formData,
-      estimatedHours: parseInt(formData.estimatedHours),
-      company: JSON.parse(localStorage.getItem('currentUser'))?.name || 'Your Organization',
-      postedTime: 'Just now',
-      logo: '',
-      nonprofitId: JSON.parse(localStorage.getItem('currentUser'))?.id || 'np1',
-      status: 'open',
-      keywords
-    };
-    
-    alert('Opportunity created successfully!');
-    onOpportunityCreated(newOpportunity);
-    
-    // Reset form
-    setFormData({
-      title: '',
-      description: '',
-      category: '',
-      skillsRequired: [],
-      estimatedHours: '',
-      deadline: '',
-      location: ''
-    });
+    setSubmitting(true);
+    try {
+      const payload = {
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        skillsRequired: formData.skillsRequired || [],
+        estimatedHours: parseInt(formData.estimatedHours, 10),
+        deadline: formData.deadline || undefined,
+        location: formData.location || ''
+      };
+      const data = await api.createOpportunity(payload);
+      if (data.opportunity) {
+        const normalized = normalizeOpportunity(data.opportunity);
+        onOpportunityCreated(normalized);
+        setFormData({
+          title: '',
+          description: '',
+          category: '',
+          skillsRequired: [],
+          estimatedHours: '',
+          deadline: '',
+          location: ''
+        });
+      } else {
+        onError?.(data.message || 'Failed to create opportunity');
+      }
+    } catch (err) {
+      onError?.(err?.message || 'Failed to create opportunity');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -241,8 +248,8 @@ const CreateOpportunity = ({ onOpportunityCreated }) => {
         </div>
 
         <div className="form-actions">
-          <button type="submit" className="btn btn-primary">
-            Create Opportunity
+          <button type="submit" className="btn btn-primary" disabled={submitting}>
+            {submitting ? 'Creating...' : 'Create Opportunity'}
           </button>
         </div>
       </form>

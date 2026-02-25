@@ -7,7 +7,7 @@ import VolunteerApplicationCard from '../components/VolunteerApplicationCard';
 import RoleSwitcher from '../components/RoleSwitcher';
 import SwipeDeck from '../components/SwipeDeck';
 import TagInput from '../components/TagInput';
-import { mockOpportunities, mockApplications } from '../utils/mockData';
+import { normalizeOpportunity, normalizeApplication } from '../utils/apiTransform';
 import {
   computeMatchedNonprofits,
   getAllProfileLikes,
@@ -53,19 +53,10 @@ function makeId(prefix) {
 }
 
 const Dashboard = () => {
-  const [opportunities, setOpportunities] = useState(() => {
-    const storedOpportunities = JSON.parse(localStorage.getItem('opportunities') || 'null');
-    return Array.isArray(storedOpportunities) && storedOpportunities.length > 0
-      ? storedOpportunities
-      : mockOpportunities;
-  });
-
-  const [applications, setApplications] = useState(() => {
-    const storedApplications = JSON.parse(localStorage.getItem('applications') || 'null');
-    return Array.isArray(storedApplications) && storedApplications.length > 0
-      ? storedApplications
-      : mockApplications;
-  });
+  const [opportunities, setOpportunities] = useState([]);
+  const [applications, setApplications] = useState([]);
+  const [opportunitiesLoading, setOpportunitiesLoading] = useState(true);
+  const [applicationsLoading, setApplicationsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('opportunities');
   const [shortlistSubTab, setShortlistSubTab] = useState('saved'); // 'saved' | 'applications'
   const [currentUser, setCurrentUser] = useState(() =>
@@ -117,6 +108,8 @@ const Dashboard = () => {
   const [npJengoDeck, setNpJengoDeck] = useState([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [findVolunteersOpportunity, setFindVolunteersOpportunity] = useState(null);
+  const [opportunityCreatedMessage, setOpportunityCreatedMessage] = useState(null);
+  const [volunteers, setVolunteers] = useState([]);
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem('isAuthenticated');
@@ -125,6 +118,66 @@ const Dashboard = () => {
       return;
     }
   }, [navigate]);
+
+  // Fetch opportunities from MongoDB
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setOpportunitiesLoading(false);
+      return;
+    }
+    const role = currentUser?.role || viewRole;
+    setOpportunitiesLoading(true);
+    if (role === 'nonprofit') {
+      api.getMyOpportunities()
+        .then((data) => {
+          const list = (data.opportunities || []).map(normalizeOpportunity);
+          setOpportunities(list);
+        })
+        .catch(() => setOpportunities([]))
+        .finally(() => setOpportunitiesLoading(false));
+    } else {
+      api.getOpportunities()
+        .then((data) => {
+          const list = (data.opportunities || []).map(normalizeOpportunity);
+          setOpportunities(list);
+        })
+        .catch(() => setOpportunities([]))
+        .finally(() => setOpportunitiesLoading(false));
+    }
+  }, [currentUser?.role, viewRole]);
+
+  // Fetch applications from MongoDB (volunteer: my applications)
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const role = currentUser?.role || viewRole;
+    if (!token || role !== 'volunteer') {
+      setApplicationsLoading(false);
+      setApplications([]);
+      return;
+    }
+    setApplicationsLoading(true);
+    api.getMyApplications()
+      .then((data) => {
+        const list = (data.applications || []).map(normalizeApplication);
+        setApplications(list);
+      })
+      .catch(() => setApplications([]))
+      .finally(() => setApplicationsLoading(false));
+  }, [currentUser?.role, viewRole]);
+
+  // Fetch volunteers from MongoDB (for nonprofit Network/Reach Out)
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const role = currentUser?.role || viewRole;
+    if (!token || role !== 'nonprofit') {
+      setVolunteers([]);
+      return;
+    }
+    api.getVolunteers()
+      .then((data) => setVolunteers(data.volunteers || []))
+      .catch(() => setVolunteers([]));
+  }, [currentUser?.role, viewRole]);
 
   useEffect(() => {
     const onPointerDown = (e) => {
@@ -147,14 +200,6 @@ const Dashboard = () => {
     };
   }, [isMenuOpen]);
 
-  // Keep localStorage in sync (external system) with latest state.
-  useEffect(() => {
-    localStorage.setItem('opportunities', JSON.stringify(opportunities));
-  }, [opportunities]);
-
-  useEffect(() => {
-    localStorage.setItem('applications', JSON.stringify(applications));
-  }, [applications]);
 
   const currentUserId = currentUser?.id || currentUser?._id;
   const volunteerContextId = currentUser?.role === 'volunteer' && currentUserId ? currentUserId : 'vol1';
@@ -232,58 +277,48 @@ const Dashboard = () => {
     setActiveTab('profile');
   };
 
-  const handleApply = (opportunityId) => {
-    const opportunity = opportunities.find(opp => opp.id === opportunityId);
+  const handleApply = async (opportunityId) => {
+    const opportunity = opportunities.find((opp) => opp.id === opportunityId);
     if (!opportunity) return;
     if (opportunity.status === 'closed') {
       alert('This opportunity is closed.');
       return;
     }
-
-    const volunteerId = currentUserId || 'vol1';
-    const duplicate = applications.some(
-      (app) => app.opportunityId === opportunityId && app.volunteerId === volunteerId
-    );
-    if (duplicate) {
-      alert('You have already applied to this opportunity.');
-      return;
+    try {
+      const data = await api.applyToOpportunity(opportunityId);
+      if (data.application) {
+        const normalized = normalizeApplication(data.application);
+        setApplications((prev) => [...prev, normalized]);
+        alert(`Applied to ${opportunity.title}!`);
+      } else {
+        alert(data.message || 'Failed to apply');
+      }
+    } catch (err) {
+      alert(err?.message || 'Failed to apply');
     }
-
-    const newApplication = {
-      id: makeId('app'),
-      opportunityId: opportunity.id,
-      volunteerId,
-      volunteerName: currentUser?.name || 'You',
-      volunteerEmail: currentUser?.email || 'you@example.com',
-      volunteerSchool: currentUser?.school || 'Your School',
-      volunteerSkills: currentUser?.skills || ['General'],
-      volunteerResume: currentUser?.resume || '',
-      volunteerForm: currentUser?.volunteerForm || '',
-      status: 'applied',
-      appliedAt: nowIso(),
-      opportunityTitle: opportunity.title
-    };
-
-    const updatedApplications = [...applications, newApplication];
-    setApplications(updatedApplications);
-    localStorage.setItem('applications', JSON.stringify(updatedApplications));
-    alert(`Applied to ${opportunity.title}!`);
   };
 
   const handleOpportunityCreated = (newOpp) => {
-    const updated = [...opportunities, newOpp];
-    setOpportunities(updated);
-    localStorage.setItem('opportunities', JSON.stringify(updated));
+    setOpportunities((prev) => [...prev, newOpp]);
     setShowCreateForm(false);
+    setOpportunityCreatedMessage(newOpp.title);
+    setTimeout(() => setOpportunityCreatedMessage(null), 5000);
   };
 
-  const handleCloseOpportunity = (opportunityId) => {
-    const updated = opportunities.map((opp) =>
-      opp.id === opportunityId ? { ...opp, status: 'closed' } : opp
-    );
-    setOpportunities(updated);
-    localStorage.setItem('opportunities', JSON.stringify(updated));
-    alert('Opportunity closed.');
+  const handleCloseOpportunity = async (opportunityId) => {
+    try {
+      const data = await api.updateOpportunity(opportunityId, { status: 'closed' });
+      if (data.opportunity) {
+        setOpportunities((prev) =>
+          prev.map((opp) => (opp.id === opportunityId ? { ...opp, status: 'closed' } : opp))
+        );
+        alert('Opportunity closed.');
+      } else {
+        alert(data.message || 'Failed to close opportunity');
+      }
+    } catch (err) {
+      alert(err?.message || 'Failed to close opportunity');
+    }
   };
 
   const handleVolunteerProfileSave = () => {
@@ -453,7 +488,6 @@ const Dashboard = () => {
     const userIdForUpdate = currentUser?.id || currentUser?._id;
     const updateData = {
       name: nonprofitProfile.name,
-      username: nonprofitProfile.username,
       email: nonprofitProfile.email,
       location: nonprofitProfile.location,
       organizationDescription: nonprofitProfile.organizationDescription,
@@ -962,6 +996,23 @@ const Dashboard = () => {
         }
         return (
           <div className="my-opportunities-page">
+            {opportunityCreatedMessage && (
+              <div className="success-panel" role="status">
+                <span className="success-panel__icon" aria-hidden>✓</span>
+                <div className="success-panel__content">
+                  <strong>Opportunity created</strong>
+                  <p>“{opportunityCreatedMessage}” has been posted successfully.</p>
+                </div>
+                <button
+                  type="button"
+                  className="success-panel__dismiss"
+                  onClick={() => setOpportunityCreatedMessage(null)}
+                  aria-label="Dismiss"
+                >
+                  ×
+                </button>
+              </div>
+            )}
             <div className="my-opportunities-header">
               <button
                 type="button"
@@ -1006,6 +1057,7 @@ const Dashboard = () => {
               applications={applications}
               myOpportunities={myOpportunities}
               nonprofitId={nonprofitId}
+              volunteers={volunteers}
             />
           </div>
         );
@@ -1118,14 +1170,6 @@ const Dashboard = () => {
                   type="text"
                   value={nonprofitProfile.name}
                   onChange={(e) => setNonprofitProfile({ ...nonprofitProfile, name: e.target.value })}
-                />
-              </div>
-              <div className="form-group">
-                <label>Username</label>
-                <input
-                  type="text"
-                  value={nonprofitProfile.username}
-                  onChange={(e) => setNonprofitProfile({ ...nonprofitProfile, username: e.target.value })}
                 />
               </div>
               <div className="form-group">
@@ -1309,6 +1353,7 @@ const Dashboard = () => {
           opportunity={findVolunteersOpportunity}
           applications={applications}
           nonprofitId={nonprofitId}
+          volunteers={volunteers}
           onClose={() => setFindVolunteersOpportunity(null)}
         />
       )}

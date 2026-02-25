@@ -7,7 +7,6 @@ import {
   setOutreachMessage,
   resolveMediaUrl
 } from '../utils/matchmaking';
-import { mockVolunteers } from '../utils/mockData';
 import './NetworkView.css';
 
 const PlayIcon = () => (
@@ -29,7 +28,7 @@ const INTEREST_OPTIONS = [
   'Food Security', 'Human Rights', 'Arts', 'Culture'
 ];
 
-const NetworkView = ({ applications, myOpportunities, nonprofitId }) => {
+const NetworkView = ({ applications, myOpportunities, nonprofitId, volunteers = [] }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [skillFilter, setSkillFilter] = useState('');
   const [interestFilter, setInterestFilter] = useState('');
@@ -48,18 +47,18 @@ const NetworkView = ({ applications, myOpportunities, nonprofitId }) => {
           email: app.volunteerEmail,
           school: app.volunteerSchool,
           skills: app.volunteerSkills || [],
-          interests: []
+          interests: app.volunteerInterests || []
         });
       }
     });
-    const combined = [...mockVolunteers];
+    const combined = [...volunteers];
     fromApps.forEach((v) => {
       if (!combined.some((c) => c.id === v.id)) {
         combined.push(v);
       }
     });
     return combined;
-  }, [applications]);
+  }, [applications, volunteers]);
 
   const filteredVolunteers = useMemo(() => {
     const q = (searchQuery || '').toLowerCase().trim();
@@ -174,8 +173,8 @@ const NetworkView = ({ applications, myOpportunities, nonprofitId }) => {
       <div className="network-volunteers-list">
         {filteredVolunteers.length > 0 ? (
           filteredVolunteers.map((vol) => {
-            const pitchUrl = getPitchVideoUrl(vol.id);
-            const photoUrl = getProfilePhotoUrl(vol.id);
+            const pitchUrl = vol.pitchVideoUrl || getPitchVideoUrl(vol.id);
+            const photoUrl = vol.profilePhoto || getProfilePhotoUrl(vol.id);
             return (
               <div key={vol.id} className="network-volunteer-card">
                 <div className="network-volunteer-avatar">

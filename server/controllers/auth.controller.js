@@ -1,5 +1,16 @@
 import User from '../models/User.model.js';
 import { generateToken } from '../config/jwt.js';
+import { generateVerificationToken, sendVerificationEmail } from '../utils/email.js';
+
+function slugify(text) {
+  return (text || '')
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '') || 'org';
+}
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -24,17 +35,26 @@ export const register = async (req, res) => {
       matchingProfile
     } = req.body;
 
-    // Check if user already exists
-    const userExists = await User.findOne({ $or: [{ email }, { username }] });
+    const effectiveUsername = role === 'nonprofit' ? slugify(name) + '-' + Date.now().toString(36) : username;
+    if (role === 'volunteer' && !username?.trim()) {
+      return res.status(400).json({ message: 'Username is required' });
+    }
+
+    const userExists = await User.findOne({
+      $or: [{ email: email?.toLowerCase() }, ...(effectiveUsername ? [{ username: effectiveUsername.toLowerCase() }] : [])]
+    });
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Create user
+    const verificationToken = generateVerificationToken();
+    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    const skipVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true';
     const user = await User.create({
       name,
       pronouns,
-      username,
+      username: effectiveUsername || undefined,
       email,
       password,
       role,
@@ -46,18 +66,66 @@ export const register = async (req, res) => {
       neededInterests: role === 'nonprofit' ? neededInterests : undefined,
       organizationDescription: role === 'nonprofit' ? organizationDescription : undefined,
       website: role === 'nonprofit' ? website : undefined,
-      matchingProfile
+      matchingProfile,
+      emailVerified: skipVerification,
+      emailVerificationToken: skipVerification ? undefined : verificationToken,
+      emailVerificationExpires: skipVerification ? undefined : verificationExpires
     });
 
-    if (user) {
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid user data' });
+    }
+
+    if (skipVerification) {
       const token = generateToken(user._id);
-      res.status(201).json({
+      return res.status(201).json({
+        message: 'Account created (email verification skipped in dev)',
         token,
         user: user.toPublicJSON()
       });
-    } else {
-      res.status(400).json({ message: 'Invalid user data' });
     }
+
+    const emailResult = await sendVerificationEmail(email, verificationToken);
+    res.status(201).json({
+      message: 'Please check your email to verify your account',
+      requiresVerification: true,
+      devLink: emailResult?.devLink || undefined,
+      user: user.toPublicJSON()
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Verify email with token
+// @route   GET /api/auth/verify-email
+// @access  Public
+export const verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.query;
+    if (!token) {
+      return res.status(400).json({ message: 'Verification token is required' });
+    }
+
+    const user = await User.findOne({
+      emailVerificationToken: token,
+      emailVerificationExpires: { $gt: new Date() }
+    });
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired verification link' });
+    }
+
+    user.emailVerified = true;
+    user.emailVerificationToken = undefined;
+    user.emailVerificationExpires = undefined;
+    await user.save({ validateBeforeSave: false });
+
+    const jwtToken = generateToken(user._id);
+    res.json({
+      message: 'Email verified successfully',
+      token: jwtToken,
+      user: user.toPublicJSON()
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -71,15 +139,20 @@ export const login = async (req, res) => {
     const { email, password } = req.body;
 
     // Check if user exists
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email?.toLowerCase() });
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Check password
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    if (user.emailVerified === false && process.env.SKIP_EMAIL_VERIFICATION !== 'true') {
+      return res.status(403).json({
+        message: 'Please verify your email before signing in. Check your inbox for the verification link.'
+      });
     }
 
     const token = generateToken(user._id);

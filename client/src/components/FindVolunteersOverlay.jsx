@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import './FindVolunteersOverlay.css';
+import api from '../services/api';
+import { normalizeApplication } from '../utils/apiTransform';
 import {
   likeVolunteerProfile,
   getPitchVideoUrl,
@@ -8,7 +9,7 @@ import {
   setOutreachMessage,
   resolveMediaUrl
 } from '../utils/matchmaking';
-import { mockVolunteers } from '../utils/mockData';
+import './FindVolunteersOverlay.css';
 
 const PlayIcon = () => (
   <svg className="btn-play-icon-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -71,18 +72,32 @@ function getMatchingVolunteers(opportunity, allVolunteers, applicantVolunteerIds
 
 const FindVolunteersOverlay = ({
   opportunity,
-  applications,
+  applications: applicationsProp,
   onClose,
-  nonprofitId
+  nonprofitId,
+  volunteers = []
 }) => {
   const [activeSubTab, setActiveSubTab] = useState('applicants');
   const [reachOutVolunteer, setReachOutVolunteer] = useState(null);
   const [reachOutNote, setReachOutNote] = useState('');
   const [playingVideoVolunteerId, setPlayingVideoVolunteerId] = useState(null);
+  const [fetchedApplications, setFetchedApplications] = useState([]);
+
+  useEffect(() => {
+    if (!opportunity?.id) return;
+    api.getOpportunityApplications(opportunity.id)
+      .then((data) => {
+        const list = (data.applications || []).map(normalizeApplication);
+        setFetchedApplications(list);
+      })
+      .catch(() => setFetchedApplications([]));
+  }, [opportunity?.id]);
+
+  const applications = opportunity?.id ? fetchedApplications : (applicationsProp || []);
 
   const applicants = useMemo(
-    () => applications.filter((app) => app.opportunityId === opportunity?.id),
-    [applications, opportunity?.id]
+    () => applications,
+    [applications]
   );
 
   const applicantVolunteerIds = useMemo(
@@ -99,18 +114,19 @@ const FindVolunteersOverlay = ({
           name: app.volunteerName,
           email: app.volunteerEmail,
           school: app.volunteerSchool,
-          skills: app.volunteerSkills || []
+          skills: app.volunteerSkills || [],
+          interests: app.volunteerInterests || []
         });
       }
     });
-    const combined = [...mockVolunteers];
+    const combined = [...volunteers];
     fromApps.forEach((v) => {
       if (!combined.some((c) => c.id === v.id)) {
         combined.push(v);
       }
     });
     return combined;
-  }, [applications]);
+  }, [applications, volunteers]);
 
   const reachOutVolunteers = useMemo(
     () => opportunity ? getMatchingVolunteers(opportunity, allVolunteers, applicantVolunteerIds) : [],
@@ -162,8 +178,8 @@ const FindVolunteersOverlay = ({
             applicants.length > 0 ? (
               <div className="find-volunteers-list">
                 {applicants.map((app) => {
-                  const photoUrl = getProfilePhotoUrl(app.volunteerId);
-                  const pitchUrl = getPitchVideoUrl(app.volunteerId);
+                  const photoUrl = app.volunteerProfilePhoto || getProfilePhotoUrl(app.volunteerId);
+                  const pitchUrl = app.volunteerPitchVideoUrl || getPitchVideoUrl(app.volunteerId);
                   return (
                     <div key={app.id} className="find-volunteer-card">
                       <div className="find-volunteer-avatar">
@@ -231,8 +247,8 @@ const FindVolunteersOverlay = ({
             reachOutVolunteers.length > 0 ? (
               <div className="find-volunteers-list">
                 {reachOutVolunteers.map((vol) => {
-                  const pitchUrl = getPitchVideoUrl(vol.id);
-                  const photoUrl = getProfilePhotoUrl(vol.id);
+                  const pitchUrl = vol.pitchVideoUrl || getPitchVideoUrl(vol.id);
+                  const photoUrl = vol.profilePhoto || getProfilePhotoUrl(vol.id);
                   return (
                     <div key={vol.id} className="find-volunteer-card">
                       <div className="find-volunteer-avatar">

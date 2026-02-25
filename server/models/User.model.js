@@ -14,10 +14,10 @@ const userSchema = new mongoose.Schema(
     },
     username: {
       type: String,
-      required: [true, 'Username is required'],
-      unique: true,
       trim: true,
-      lowercase: true
+      lowercase: true,
+      sparse: true, // allows multiple nulls, unique for non-null
+      default: null
     },
     email: {
       type: String,
@@ -119,6 +119,18 @@ const userSchema = new mongoose.Schema(
         type: [String],
         default: []
       }
+    },
+    emailVerified: {
+      type: Boolean,
+      default: false
+    },
+    emailVerificationToken: {
+      type: String,
+      default: null
+    },
+    emailVerificationExpires: {
+      type: Date,
+      default: null
     }
   },
   {
