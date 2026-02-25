@@ -1,6 +1,6 @@
 // API service for making HTTP requests to the backend
 
-const DEFAULT_DEV_API_BASE_URL = 'http://localhost:5001/api';
+const DEFAULT_DEV_API_BASE_URL = 'http://localhost:8000/api';
 const DEFAULT_PROD_API_BASE_URL = 'https://jengo.onrender.com/api';
 
 const API_BASE_URL =

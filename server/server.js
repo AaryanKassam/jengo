@@ -20,6 +20,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
+// Block API requests until MongoDB is connected
+app.use('/api', (req, res, next) => {
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({
+      message: 'Database is connecting. Please try again in a moment.'
+    });
+  }
+  next();
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -40,35 +50,31 @@ const connectDB = async () => {
 
     try {
       await mongoose.connect(configuredUri || localUri);
-      console.log('MongoDB connected successfully');
-      return;
     } catch (error) {
       if (configuredUri) throw error;
       console.warn('Local MongoDB not available, starting in-memory MongoDB for development...');
+
+      const mongod = await MongoMemoryServer.create();
+      const inMemoryUri = mongod.getUri('jengo');
+      await mongoose.connect(inMemoryUri);
+
+      const shutdown = async () => {
+        try {
+          await mongoose.disconnect();
+        } finally {
+          await mongod.stop();
+        }
+      };
+      process.once('SIGINT', shutdown);
+      process.once('SIGTERM', shutdown);
     }
 
-    const mongod = await MongoMemoryServer.create();
-    const inMemoryUri = mongod.getUri('jengo');
-    await mongoose.connect(inMemoryUri);
-    console.log('MongoDB (in-memory) connected successfully');
-
-    const shutdown = async () => {
-      try {
-        await mongoose.disconnect();
-      } finally {
-        await mongod.stop();
-      }
-    };
-
-    process.once('SIGINT', shutdown);
-    process.once('SIGTERM', shutdown);
+    console.log('MongoDB connected successfully');
   } catch (error) {
     console.error('MongoDB connection error:', error);
     process.exit(1);
   }
 };
-
-connectDB();
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -86,6 +92,14 @@ app.use((req, res) => {
 
 const PORT = process.env.PORT || 8000;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Start server only after MongoDB is connected
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  });

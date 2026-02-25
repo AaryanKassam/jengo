@@ -422,6 +422,18 @@
   font-size: 2.4rem;
 }
 
+.role-icon-img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.auth-page--signup .role-icon-img {
+  width: 56px;
+  height: 56px;
+}
+
 .auth-page--signup .role-text strong {
   font-size: 1.15rem;
 }

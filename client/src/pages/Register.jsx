@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/auth-context';
 import TagInput from '../components/TagInput';
+import volunteerRoleIcon from '../assets/volunteer-role-icon.png';
+import nonprofitRoleIcon from '../assets/nonprofit-role-icon.png';
 import './Auth.css';
 
 const VOLUNTEER_SKILL_SUGGESTIONS = [
@@ -428,7 +430,7 @@ const Register = () => {
                 className={`role-option ${formData.role === 'volunteer' ? 'active' : ''}`}
                 onClick={() => setFormData({ ...formData, role: 'volunteer' })}
               >
-                <span className="role-icon" aria-hidden="true">V</span>
+                <img src={volunteerRoleIcon} alt="" className="role-icon-img" aria-hidden="true" />
                 <div className="role-text">
                   <strong>Volunteer</strong>
                   <span>Find opportunities and build experience</span>
@@ -439,9 +441,9 @@ const Register = () => {
                 className={`role-option ${formData.role === 'nonprofit' ? 'active' : ''}`}
                 onClick={() => setFormData({ ...formData, role: 'nonprofit' })}
               >
-                <span className="role-icon" aria-hidden="true">N</span>
+                <img src={nonprofitRoleIcon} alt="" className="role-icon-img" aria-hidden="true" />
                 <div className="role-text">
-                  <strong>Nonprofit</strong>
+                  <strong>Non-Profit Organization</strong>
                   <span>Post opportunities and review applicants</span>
                 </div>
               </button>
