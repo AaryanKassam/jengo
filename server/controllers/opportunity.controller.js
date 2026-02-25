@@ -1,5 +1,6 @@
 import Opportunity from '../models/Opportunity.model.js';
 import Application from '../models/Application.model.js';
+import User from '../models/User.model.js';
 
 function extractKeywords(text, max = 20) {
   const stop = new Set([
@@ -154,6 +155,165 @@ export const deleteOpportunity = async (req, res) => {
     await Opportunity.findByIdAndDelete(req.params.id);
 
     res.json({ message: 'Opportunity deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get recommended opportunities for volunteer
+// @route   GET /api/opportunities/recommended
+// @access  Private (Volunteer only)
+export const getRecommendedOpportunities = async (req, res) => {
+  try {
+    if (req.user.role !== 'volunteer') {
+      return res.status(403).json({ message: 'Only volunteers can access recommended opportunities' });
+    }
+
+    const volunteerSkills = req.user.skills || [];
+    const volunteerInterests = req.user.interests || [];
+
+    const opportunities = await Opportunity.aggregate([
+      // Match only open opportunities
+      {
+        $match: {
+          status: 'open'
+        }
+      },
+      // Calculate match score based on skill and interest overlap
+      {
+        $addFields: {
+          matchScore: {
+            $add: [
+              {
+                $size: {
+                  $setIntersection: [
+                    { $ifNull: ['$skillsRequired', []] },
+                    volunteerSkills
+                  ]
+                }
+              },
+              {
+                $size: {
+                  $setIntersection: [
+                    { $ifNull: ['$keywords', []] },
+                    volunteerInterests
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      // Lookup nonprofit details
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'nonprofit',
+          foreignField: '_id',
+          as: 'nonprofitDetails'
+        }
+      },
+      // Unwind nonprofit details array
+      {
+        $unwind: {
+          path: '$nonprofitDetails',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      // Project nonprofit name and logo
+      {
+        $addFields: {
+          'nonprofit': {
+            _id: '$nonprofitDetails._id',
+            name: '$nonprofitDetails.name',
+            username: '$nonprofitDetails.username',
+            organizationLogo: '$nonprofitDetails.organizationLogo'
+          }
+        }
+      },
+      // Remove temporary nonprofitDetails array
+      {
+        $project: {
+          nonprofitDetails: 0
+        }
+      },
+      // Sort by match score (descending), then by creation date (descending)
+      {
+        $sort: {
+          matchScore: -1,
+          createdAt: -1
+        }
+      }
+    ]);
+
+    res.json({ opportunities });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get recommended volunteers for a specific opportunity
+// @route   GET /api/opportunities/:id/recommended-volunteers
+// @access  Private (Nonprofit only, must own the opportunity)
+export const getRecommendedVolunteers = async (req, res) => {
+  try {
+    if (req.user.role !== 'nonprofit') {
+      return res.status(403).json({ message: 'Only nonprofits can access recommended volunteers' });
+    }
+
+    // Fetch the opportunity and verify ownership
+    const opportunity = await Opportunity.findById(req.params.id);
+
+    if (!opportunity) {
+      return res.status(404).json({ message: 'Opportunity not found' });
+    }
+
+    if (opportunity.nonprofit.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not authorized to view volunteers for this opportunity' });
+    }
+
+    const opportunitySkills = opportunity.skillsRequired || [];
+
+    const volunteers = await User.aggregate([
+      // Match only volunteers
+      {
+        $match: {
+          role: 'volunteer'
+        }
+      },
+      // Calculate match score based on skill overlap with opportunity requirements
+      {
+        $addFields: {
+          matchScore: {
+            $size: {
+              $setIntersection: [
+                { $ifNull: ['$skills', []] },
+                opportunitySkills
+              ]
+            }
+          }
+        }
+      },
+      // Sort by match score (descending)
+      {
+        $sort: {
+          matchScore: -1
+        }
+      },
+      // Project only non-sensitive fields
+      {
+        $project: {
+          password: 0,
+          email: 0,
+          resume: 0,
+          volunteerForm: 0,
+          socialLinks: 0,
+          matchingProfile: 0
+        }
+      }
+    ]);
+
+    res.json({ volunteers });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
